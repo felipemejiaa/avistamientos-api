@@ -114,4 +114,14 @@ class ValidadorDeAvistamientoTest {
         // Assert
         assertEquals("lugar: no puede estar vacío", error);
     }
+
+    @Test
+    void rechazaObservador_cuandoEsNulo() {
+        // Arrange
+        Avistamiento a = new Avistamiento("Águila", "Chingaza", HOY, null);
+        // Act
+        String error = validador.validar(a);
+        // Assert
+        assertEquals("observador: no puede estar vacío", error);
+    }
 }
