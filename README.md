@@ -95,3 +95,18 @@ Usé **Claude** (Anthropic), modelo **Claude Opus 5.5**, durante todo el desarro
 - **Controlador:** lo desarrollé en conjunto con Claude. Escribí las primeras versiones de los endpoints a partir de sus pistas y correcciones, y luego ajustamos la versión final a un estilo más sencillo.
 
 Todo el código fue revisado, probado y comprendido por mí antes de publicarse.
+
+## Pruebas
+
+Correr todas las pruebas (unitarias y de integración):
+
+    .\mvnw.cmd test
+
+Generar el reporte de cobertura (JaCoCo):
+
+    .\mvnw.cmd verify
+
+El reporte queda en `target/site/jacoco/index.html`.
+
+- Pruebas unitarias del validador: `src/test/java/.../validation/ValidadorDeAvistamientoTest.java` (con el stub `RelojFijo`).
+- Pruebas de integración de los 5 endpoints: `src/test/java/.../controller/AvistamientoControllerTest.java` (MockMvc y H2 en memoria).
