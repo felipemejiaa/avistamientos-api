@@ -4,7 +4,8 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import java.time.LocalDate;
 import org.junit.jupiter.api.Test;
-import com.felipemejia.avistamientos.model.Avistamiento;
+import com.felipemejia.avistamientos.dominio.Avistamiento;
+import com.felipemejia.avistamientos.aplicacion.ValidadorDeAvistamiento;
 
 class ValidadorDeAvistamientoTest {
 

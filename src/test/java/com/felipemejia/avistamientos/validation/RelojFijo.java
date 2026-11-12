@@ -1,5 +1,6 @@
 package com.felipemejia.avistamientos.validation;
 
+import com.felipemejia.avistamientos.dominio.Reloj;
 import java.time.LocalDate;
 
 public class RelojFijo implements Reloj {

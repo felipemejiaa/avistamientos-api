@@ -14,14 +14,14 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
-import com.felipemejia.avistamientos.model.Avistamiento;
-import com.felipemejia.avistamientos.repository.AvistamientoRepository;
+import com.felipemejia.avistamientos.infraestructura.salida.AvistamientoEntidad;
+import com.felipemejia.avistamientos.infraestructura.salida.AvistamientoRepositorioJpa;
 
 @SpringBootTest(properties = "spring.datasource.url=jdbc:h2:mem:pruebas")
 class AvistamientoControllerTest {
 
     @Autowired WebApplicationContext contexto;
-    @Autowired AvistamientoRepository repository;
+    @Autowired AvistamientoRepositorioJpa repository;
     MockMvc mvc;
 
     private static final String VALIDO =
@@ -33,28 +33,27 @@ class AvistamientoControllerTest {
         repository.deleteAll();
     }
 
-    private Avistamiento guardarUno() {
-        return repository.save(new Avistamiento("Colibrí", "Usaquén", LocalDate.of(2026, 9, 1), "Ana"));
+    private AvistamientoEntidad guardarUno() {
+        AvistamientoEntidad e = new AvistamientoEntidad();
+        e.setEspecie("Colibrí");
+        e.setLugar("Usaquén");
+        e.setFecha(LocalDate.of(2026, 9, 1));
+        e.setObservador("Ana");
+        return repository.save(e);
     }
 
-    // ---------- GET /avistamientos ----------
     @Test
     void listar_responde200_conLosAvistamientosGuardados() throws Exception {
-        // Arrange
         guardarUno();
-        // Act + Assert
         mvc.perform(get("/avistamientos"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(1))
                 .andExpect(jsonPath("$[0].especie").value("Colibrí"));
     }
 
-    // ---------- GET /avistamientos/{id} ----------
     @Test
     void obtener_responde200_cuandoElIdExiste() throws Exception {
-        // Arrange
-        Avistamiento a = guardarUno();
-        // Act + Assert
+        AvistamientoEntidad a = guardarUno();
         mvc.perform(get("/avistamientos/" + a.getId()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.lugar").value("Usaquén"));
@@ -66,23 +65,18 @@ class AvistamientoControllerTest {
                 .andExpect(status().isNotFound());
     }
 
-    // ---------- POST /avistamientos ----------
     @Test
     void crear_responde201_yLoGuarda_cuandoEsValido() throws Exception {
-        // Act
         mvc.perform(post("/avistamientos").contentType(MediaType.APPLICATION_JSON).content(VALIDO))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.especie").value("Águila"))
                 .andExpect(jsonPath("$.id").exists());
-        // Assert (efecto)
         assertEquals(1, repository.count());
     }
 
     @Test
     void crear_responde400_conMensaje_cuandoLaEspecieEsCorta() throws Exception {
-        // Arrange
         String json = VALIDO.replace("Águila", "ab");
-        // Act + Assert
         mvc.perform(post("/avistamientos").contentType(MediaType.APPLICATION_JSON).content(json))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error").value("especie: debe tener entre 3 y 50 caracteres"));
@@ -91,33 +85,25 @@ class AvistamientoControllerTest {
 
     @Test
     void crear_responde400_conMensaje_cuandoLaFechaTieneMalFormato() throws Exception {
-        // Arrange
         String json = VALIDO.replace("2026-10-01", "hola");
-        // Act + Assert
         mvc.perform(post("/avistamientos").contentType(MediaType.APPLICATION_JSON).content(json))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error").value("fecha: formato inválido, use AAAA-MM-DD"));
     }
 
-    // ---------- PUT /avistamientos/{id} ----------
     @Test
     void actualizar_responde200_yCambiaLosDatos_cuandoEsValido() throws Exception {
-        // Arrange
-        Avistamiento a = guardarUno();
-        // Act
+        AvistamientoEntidad a = guardarUno();
         mvc.perform(put("/avistamientos/" + a.getId()).contentType(MediaType.APPLICATION_JSON).content(VALIDO))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.especie").value("Águila"));
-        // Assert (efecto)
         assertEquals("Águila", repository.findById(a.getId()).get().getEspecie());
     }
 
     @Test
     void actualizar_responde400_cuandoElLugarEstaVacio() throws Exception {
-        // Arrange
-        Avistamiento a = guardarUno();
+        AvistamientoEntidad a = guardarUno();
         String json = VALIDO.replace("Chingaza", "");
-        // Act + Assert
         mvc.perform(put("/avistamientos/" + a.getId()).contentType(MediaType.APPLICATION_JSON).content(json))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error").value("lugar: no puede estar vacío"));
@@ -129,15 +115,11 @@ class AvistamientoControllerTest {
                 .andExpect(status().isNotFound());
     }
 
-    // ---------- DELETE /avistamientos/{id} ----------
     @Test
     void eliminar_responde204_yLuegoGetDa404() throws Exception {
-        // Arrange
-        Avistamiento a = guardarUno();
-        // Act
+        AvistamientoEntidad a = guardarUno();
         mvc.perform(delete("/avistamientos/" + a.getId()))
                 .andExpect(status().isNoContent());
-        // Assert (efecto)
         mvc.perform(get("/avistamientos/" + a.getId()))
                 .andExpect(status().isNotFound());
     }
